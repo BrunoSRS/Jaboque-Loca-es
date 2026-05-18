@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Degradê alinhado ao fundo da logo (topo → base) */
+  --jaboque-gradient-top: #002b5c;
+  --jaboque-gradient-mid: #01245a;
+  --jaboque-gradient-bottom: #001a3d;
+  --jaboque-gradient-deep: #001428;
+  --jaboque-navy: #012169;
+  --jaboque-navy-dark: #001a3d;
+  --jaboque-navy-light: #003399;
+  --jaboque-orange: #f58220;
+  --jaboque-orange-dark: #d96f12;
+  --jaboque-white: #ffffff;
+}
+
+@layer components {
+  .bg-jaboque-gradient {
+    background-color: var(--jaboque-gradient-bottom);
+    background-image: linear-gradient(
+      180deg,
+      var(--jaboque-gradient-top) 0%,
+      var(--jaboque-gradient-mid) 38%,
+      var(--jaboque-gradient-bottom) 72%,
+      var(--jaboque-gradient-deep) 100%
+    );
+  }
+}
+
+body {
+  @apply bg-slate-100 text-gray-800 antialiased;
+}
+
+/* Scrollbar sutil alinhada à marca */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--jaboque-navy-light);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--jaboque-orange);
+}
