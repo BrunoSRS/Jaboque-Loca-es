@@ -19,17 +19,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fotosDir = path.join(__dirname, '../../uploads/os-fotos');
 fs.mkdirSync(fotosDir, { recursive: true });
 
+const FOTO_MIMETYPES = new Set(['image/png', 'image/jpeg']);
+const FOTO_EXT_POR_MIMETYPE = { 'image/png': '.png', 'image/jpeg': '.jpg' };
+
 const uploadFoto = multer({
   storage: multer.diskStorage({
     destination: fotosDir,
     filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase() || '.png';
-      cb(null, `os-${Date.now()}${ext === '.png' ? ext : '.png'}`);
+      const extOriginal = path.extname(file.originalname).toLowerCase();
+      const ext =
+        FOTO_EXT_POR_MIMETYPE[file.mimetype] ||
+        (['.png', '.jpg', '.jpeg'].includes(extOriginal) ? (extOriginal === '.jpeg' ? '.jpg' : extOriginal) : '.png');
+      cb(null, `os-${Date.now()}${ext}`);
     },
   }),
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype === 'image/png') cb(null, true);
-    else cb(new Error('Apenas arquivos PNG são permitidos'));
+    if (FOTO_MIMETYPES.has(file.mimetype)) cb(null, true);
+    else cb(new Error('Apenas arquivos PNG ou JPEG são permitidos'));
   },
   limits: { fileSize: 5 * 1024 * 1024 },
 });
@@ -248,7 +254,7 @@ router.put('/:id', validate(osSchema.partial()), (req, res) => {
 });
 
 router.post('/:id/foto', uploadFoto.single('foto'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'VALIDATION', message: 'Envie uma foto PNG' });
+  if (!req.file) return res.status(400).json({ error: 'VALIDATION', message: 'Envie uma foto PNG ou JPEG' });
   const caminho = `/uploads/os-fotos/${req.file.filename}`;
   db.prepare('UPDATE ORDEM_SERVICO SET foto_equipamento = ? WHERE id_os = ?').run(caminho, req.params.id);
   res.json({ foto_equipamento: caminho });

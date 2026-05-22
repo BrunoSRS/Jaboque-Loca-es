@@ -196,8 +196,10 @@ export default function OrdemWizard() {
   const onFotoChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.type !== 'image/png') {
-      toast.error('Apenas PNG');
+    const tiposOk = ['image/png', 'image/jpeg'];
+    const extOk = /\.(png|jpe?g)$/i.test(file.name);
+    if (!tiposOk.includes(file.type) && !extOk) {
+      toast.error('Apenas PNG ou JPEG');
       return;
     }
     setFoto(file);
@@ -299,8 +301,8 @@ export default function OrdemWizard() {
         <Input label="Patrimônio (snapshot)" value={form.patrimonio} readOnly disabled className="bg-gray-50" />
         <Textarea label="Defeito reclamado *" className="md:col-span-2" value={form.defeito_reclamado} onChange={(e) => setForm({ ...form, defeito_reclamado: e.target.value })} disabled={!isOrcamento && !isNova} />
         <label className="md:col-span-2 block">
-          <span className="block text-sm font-medium text-gray-700 mb-1">Foto do equipamento (PNG)</span>
-          <input type="file" accept="image/png" onChange={onFotoChange} className="text-sm" disabled={!isOrcamento && !isNova} />
+          <span className="block text-sm font-medium text-gray-700 mb-1">Foto do equipamento (PNG ou JPEG)</span>
+          <input type="file" accept="image/png,image/jpeg,.jpg,.jpeg" onChange={onFotoChange} className="text-sm" disabled={!isOrcamento && !isNova} />
           {fotoPreview && (
             <img src={fotoPreview} alt="Equipamento" className="mt-2 max-h-40 rounded border" />
           )}
