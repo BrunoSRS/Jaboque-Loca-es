@@ -25,6 +25,10 @@ db.prepare(
   `INSERT INTO USUARIO (nome, login, senha_hash, perfil, ativo) VALUES (?, ?, ?, ?, 1)`
 ).run('João Técnico', 'tecnico', bcrypt.hashSync('tecnico123', 10), 'tecnico');
 
+db.prepare(
+  `INSERT INTO USUARIO (nome, login, senha_hash, perfil, ativo) VALUES (?, ?, ?, ?, 1)`
+).run('Maria Atendente', 'atendente', bcrypt.hashSync('atendente123', 10), 'atendente');
+
 const clientes = [
   ['Construtora Silva Ltda', '12.345.678/0001-90', '(11) 98765-4321', 'contato@silva.com.br', 'Rua das Obras, 100'],
   ['Mineração Norte S.A.', '98.765.432/0001-10', '(11) 91234-5678', 'ops@mineracao.com', 'Av. Industrial, 500'],
@@ -175,4 +179,4 @@ for (let i = 0; i < 6; i++) {
   }
 }
 
-console.log('Seed concluído! Login: admin / admin123');
+console.log('Seed concluído! Perfis: admin, tecnico, atendente');

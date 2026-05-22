@@ -30,8 +30,8 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = async (loginVal, senha) => {
-    const { data } = await authApi.login({ login: loginVal, senha });
+  const login = async (perfil) => {
+    const { data } = await authApi.login({ perfil });
     localStorage.setItem('jaboque_token', data.token);
     localStorage.setItem('jaboque_user', JSON.stringify(data.user));
     setUser(data.user);
