@@ -30,12 +30,27 @@ npm install
 npm run dev
 ```
 
-## Credenciais de demonstração
+## Acesso (desenvolvimento)
 
-| Login   | Senha      | Perfil  |
-|---------|------------|---------|
-| admin   | admin123   | admin   |
-| tecnico | tecnico123 | tecnico |
+Na tela de login, escolha o **tipo de usuário** (Administrador, Técnico ou Atendente). Não há senha.
+
+Na primeira vez (ou se o login falhar), crie o banco de demonstração:
+
+```bash
+npm run seed
+```
+
+**Windows:** se o backend não subir (`better-sqlite3` / Node 32-bit), use:
+
+```bash
+npm run dev
+```
+
+Isso usa scripts que forçam Node **64-bit** (LTS em https://nodejs.org/ ou o Node do Cursor).
+
+## Credenciais (gestão de usuários / seed)
+
+Usuários demo após `npm run seed`: perfis `admin`, `tecnico` e `atendente`.
 
 ## Módulos
 

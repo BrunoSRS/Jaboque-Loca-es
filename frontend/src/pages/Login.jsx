@@ -23,8 +23,17 @@ export default function Login() {
       await login(perfil);
       toast.success('Bem-vindo!');
       navigate('/');
-    } catch {
-      toast.error('Perfil indisponível no momento');
+    } catch (err) {
+      if (!err.response) {
+        toast.error('Servidor indisponível. Inicie o backend: npm run dev:backend');
+      } else if (err.response.status === 401) {
+        toast.error(
+          err.response.data?.message ||
+            'Nenhum usuário ativo para este perfil. Rode npm run seed na pasta do projeto.'
+        );
+      } else {
+        toast.error(err.response.data?.message || 'Erro ao entrar. Reinicie o backend após o git pull.');
+      }
     } finally {
       setLoading(false);
     }
