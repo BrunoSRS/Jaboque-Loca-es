@@ -54,17 +54,70 @@ function secao(doc, titulo) {
   doc.moveDown(0.35);
 }
 
+const TABELA_COL_X = [50, 270, 325, 400];
+const TABELA_COL_W = [215, 50, 70, 90];
+const TABELA_COL_ALIGN = ['left', 'center', 'right', 'right'];
+
+function linhaTabela(doc, valores, opts = {}) {
+  const rowY = doc.y;
+  const fontSize = opts.fontSize || 8;
+  doc.fontSize(fontSize).fillColor(opts.color || COR.texto);
+
+  const textos = valores.map((v) => String(v ?? ''));
+  const alturaNome = doc.heightOfString(textos[0], { width: TABELA_COL_W[0] });
+  const alturaLinha = Math.max(alturaNome, 11);
+
+  textos.forEach((txt, i) => {
+    doc.text(txt, TABELA_COL_X[i], rowY, {
+      width: TABELA_COL_W[i],
+      align: TABELA_COL_ALIGN[i],
+      lineBreak: i === 0,
+    });
+  });
+  doc.y = rowY + alturaLinha + (opts.espacamento ?? 4);
+}
+
 function tabelaCabecalho(doc, colunas) {
-  const widths = [220, 55, 75, 85];
-  let x = 50;
+  const rowY = doc.y;
   doc.fontSize(8).fillColor(COR.navy);
   colunas.forEach((col, i) => {
-    doc.text(col, x, doc.y, { width: widths[i], continued: false });
-    x += widths[i];
+    doc.text(col, TABELA_COL_X[i], rowY, {
+      width: TABELA_COL_W[i],
+      align: TABELA_COL_ALIGN[i],
+      lineBreak: false,
+    });
   });
-  doc.moveDown(0.35);
+  doc.y = rowY + 14;
   doc.strokeColor('#cccccc').moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.25);
+  doc.moveDown(0.3);
+}
+
+function caminhoFotoEquipamento(fotoUrl) {
+  if (!fotoUrl) return null;
+  const rel = String(fotoUrl).replace(/^\/uploads\//, '');
+  const full = path.join(uploadsDir, rel);
+  return fs.existsSync(full) ? full : null;
+}
+
+function secaoFotoEquipamento(doc, dados) {
+  const fotoPath = caminhoFotoEquipamento(dados.foto_equipamento);
+  if (!fotoPath) return;
+
+  if (doc.y > 640) doc.addPage();
+
+  secao(doc, 'Foto do equipamento');
+  const imgW = 140;
+  const imgH = 105;
+  const x = 50;
+  const y = doc.y;
+
+  doc.rect(x - 2, y - 2, imgW + 4, imgH + 4).strokeColor('#cccccc').lineWidth(1).stroke();
+  try {
+    doc.image(fotoPath, x, y, { fit: [imgW, imgH], align: 'center', valign: 'center' });
+  } catch {
+    doc.fontSize(8).fillColor(COR.cinza).text('Não foi possível carregar a imagem.', x, y + 40, { width: imgW });
+  }
+  doc.y = y + imgH + 12;
 }
 
 function cabecalhoEmpresa(doc, empresa, numero, tipoDocumento) {
@@ -212,12 +265,7 @@ export async function gerarPdfOs(idOs, tipoDocumento = 'Relatório de Cobrança'
       dados.servicos.forEach((s) => {
         const horas = s.quantidade_horas || 1;
         const sub = s.valor_praticado * horas;
-        doc.fontSize(8).fillColor(COR.texto);
-        doc.text(s.servico_nome || 'Serviço', 50, doc.y, { width: 220, continued: true });
-        doc.text(String(horas), 270, doc.y, { width: 55, continued: true });
-        doc.text(brl(s.valor_praticado), 325, doc.y, { width: 75, continued: true });
-        doc.text(brl(sub), 400, doc.y, { width: 85 });
-        doc.moveDown(0.15);
+        linhaTabela(doc, [s.servico_nome || 'Serviço', horas, brl(s.valor_praticado), brl(sub)]);
       });
       doc.fontSize(9).fillColor(COR.navy).text(`Subtotal serviços: ${brl(subtotalServicos)}`, { align: 'right' });
     }
@@ -227,15 +275,11 @@ export async function gerarPdfOs(idOs, tipoDocumento = 'Relatório de Cobrança'
       tabelaCabecalho(doc, ['Peça', 'Qtd', 'Unitário', 'Subtotal']);
       dados.itens.forEach((i) => {
         const sub = i.preco_unitario_aplicado * i.quantidade - (i.desconto_item || 0);
-        doc.fontSize(8).fillColor(COR.texto);
-        doc.text(i.peca_nome || 'Peça', 50, doc.y, { width: 220, continued: true });
-        doc.text(String(i.quantidade), 270, doc.y, { width: 55, continued: true });
-        doc.text(brl(i.preco_unitario_aplicado), 325, doc.y, { width: 75, continued: true });
-        doc.text(brl(sub), 400, doc.y, { width: 85 });
+        linhaTabela(doc, [i.peca_nome || 'Peça', i.quantidade, brl(i.preco_unitario_aplicado), brl(sub)]);
         if (i.local_aplicado) {
-          doc.fontSize(7).fillColor(COR.cinza).text(`  Aplicação: ${i.local_aplicado}`, 50);
+          doc.fontSize(7).fillColor(COR.cinza).text(`Aplicação: ${i.local_aplicado}`, 50, doc.y, { width: TABELA_COL_W[0] });
+          doc.moveDown(0.2);
         }
-        doc.moveDown(0.12);
       });
       doc.fontSize(9).fillColor(COR.navy).text(`Subtotal peças: ${brl(subtotalPecas)}`, { align: 'right' });
     }
@@ -282,6 +326,8 @@ export async function gerarPdfOs(idOs, tipoDocumento = 'Relatório de Cobrança'
       secao(doc, 'Condições e observações');
       doc.fontSize(8).fillColor(COR.texto).text(empresa.observacoes_cobranca, { width: 495 });
     }
+
+    secaoFotoEquipamento(doc, dados);
 
     doc.moveDown(1.2);
     doc.fontSize(8).fillColor(COR.cinza).text(
